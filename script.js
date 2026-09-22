@@ -100,6 +100,8 @@
         let products = [];
         let currentCategory = 'todos';
         let searchQuery = '';
+        let editingProductId = null; // null = modo "agregar"; con id = modo "editar"
+        let existingImages = [null, null, null, null]; // fotos ya guardadas del producto que se está editando
 
         // Initialize Application: escucha el catálogo en Firestore EN VIVO.
         // Cualquier producto que agregues o borres desde el panel se refleja
@@ -353,6 +355,7 @@
         }
 
         function openAdminDashboard() {
+            cancelEditProduct(); // siempre abre en modo "agregar", sin edición a medias
             renderAdminProductsList();
             const modal = document.getElementById('admin-dashboard-modal');
             modal.classList.remove('pointer-events-none', 'opacity-0');
@@ -440,7 +443,7 @@
             reader.readAsDataURL(file);
         }
 
-        // Quita la foto seleccionada en un slot del formulario de nuevo producto
+        // Quita la foto seleccionada (o existente) en un slot del formulario
         function clearNewImage(index) {
             const input = document.getElementById(`new-img-${index}`);
             const preview = document.getElementById(`new-img-${index}-preview`);
@@ -451,10 +454,84 @@
             preview.classList.add('hidden');
             placeholder.classList.remove('hidden');
             clearBtn.classList.add('hidden');
+            existingImages[index - 1] = null;
         }
 
-        // Add New Product (ahora con fotos reales subidas desde el dispositivo, no URLs)
-        async function handleAddNewProduct(e) {
+        // Alterna el título y el botón del formulario entre "Agregar" y "Editar"
+        function syncProductFormUI() {
+            const icon = document.getElementById('product-form-submit-icon');
+            const text = document.getElementById('product-form-submit-text');
+            const titleIcon = document.getElementById('product-form-title-icon');
+            const titleText = document.getElementById('product-form-title-text');
+            const cancelBtn = document.getElementById('cancel-edit-btn');
+            const img1 = document.getElementById('new-img-1');
+
+            if (editingProductId) {
+                icon.className = 'fa-solid fa-floppy-disk';
+                text.innerText = 'Guardar Cambios';
+                titleIcon.className = 'fa-solid fa-pen text-pastelBlueDark';
+                titleText.innerText = 'Editar Producto';
+                cancelBtn.classList.remove('hidden');
+                img1.removeAttribute('required');
+            } else {
+                icon.className = 'fa-solid fa-cloud-arrow-up';
+                text.innerText = 'Guardar Producto en el Catálogo';
+                titleIcon.className = 'fa-solid fa-plus-circle text-pink-400';
+                titleText.innerText = 'Agregar Nuevo Producto al Catálogo';
+                cancelBtn.classList.add('hidden');
+                img1.setAttribute('required', 'required');
+            }
+        }
+
+        // Abre el formulario ya lleno con los datos de un producto para editarlo
+        function openEditProduct(id) {
+            const p = products.find(prod => prod.id === id);
+            if (!p) return;
+
+            editingProductId = id;
+            const imgs = p.images || [];
+            existingImages = [imgs[0] || null, imgs[1] || null, imgs[2] || null, imgs[3] || null];
+
+            document.getElementById('new-name').value = p.name || '';
+            document.getElementById('new-category').value = p.category || '';
+            document.getElementById('new-price').value = p.price || '';
+            document.getElementById('new-description').value = p.description || '';
+
+            [1, 2, 3, 4].forEach(i => {
+                const input = document.getElementById(`new-img-${i}`);
+                const preview = document.getElementById(`new-img-${i}-preview`);
+                const placeholder = document.getElementById(`new-img-${i}-placeholder`);
+                const clearBtn = document.getElementById(`new-img-${i}-clear`);
+                input.value = '';
+                const existing = existingImages[i - 1];
+                if (existing) {
+                    preview.src = existing;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    preview.src = '';
+                    preview.classList.add('hidden');
+                    placeholder.classList.remove('hidden');
+                    clearBtn.classList.add('hidden');
+                }
+            });
+
+            syncProductFormUI();
+            document.getElementById('product-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Sale del modo edición y deja el formulario listo para agregar un producto nuevo
+        function cancelEditProduct() {
+            editingProductId = null;
+            existingImages = [null, null, null, null];
+            document.getElementById('product-form').reset();
+            [1, 2, 3, 4].forEach(i => clearNewImage(i));
+            syncProductFormUI();
+        }
+
+        // Guarda el formulario: crea un producto nuevo, o actualiza uno existente si estás editando
+        async function handleProductFormSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('new-name').value.trim();
             const category = document.getElementById('new-category').value.trim();
@@ -462,52 +539,59 @@
             const description = document.getElementById('new-description').value.trim();
 
             const fileInputs = [1, 2, 3, 4].map(i => document.getElementById(`new-img-${i}`));
-            const files = fileInputs.map(inp => inp.files[0]).filter(Boolean);
+            const files = fileInputs.map(inp => inp.files[0] || null);
 
-            if (files.length === 0) {
-                showToast("Debes subir al menos la foto principal (PNG o JPG).", "error");
+            const hasAnyImage = files.some(Boolean) || existingImages.some(Boolean);
+            if (!hasAnyImage) {
+                showToast("Debes tener al menos la foto principal (PNG o JPG).", "error");
                 return;
             }
 
             const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalBtnHtml = submitBtn.innerHTML;
+            const icon = document.getElementById('product-form-submit-icon');
+            const text = document.getElementById('product-form-submit-text');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando fotos...';
+            icon.className = 'fa-solid fa-spinner fa-spin';
+            text.innerText = 'Guardando...';
 
             try {
-                // Convierte de verdad cada foto subida en una imagen embebida en el catálogo
-                const images = await Promise.all(files.map(f => compressImage(f)));
+                // Por cada casilla: si elegiste una foto nueva se comprime; si no,
+                // se conserva la que ya tenía (o se deja vacía si la borraste con la x).
+                const images = [];
+                for (let i = 0; i < 4; i++) {
+                    if (files[i]) {
+                        images.push(await compressImage(files[i]));
+                    } else if (existingImages[i]) {
+                        images.push(existingImages[i]);
+                    }
+                }
 
-                const newProduct = {
-                    name,
-                    category,
-                    price,
-                    description,
-                    images,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
+                const productData = { name, category, price, description, images };
 
                 // Firestore no acepta documentos de más de ~1MB; con fotos comprimidas
                 // casi nunca pasa, pero avisamos si llegara a suceder.
-                const estimatedSize = new Blob([JSON.stringify(newProduct)]).size;
+                const estimatedSize = new Blob([JSON.stringify(productData)]).size;
                 if (estimatedSize > 950000) {
                     showToast("Las fotos juntas pesan demasiado. Sube menos fotos o de menor calidad.", "error");
                     return;
                 }
 
-                await db.collection('products').add(newProduct);
+                if (editingProductId) {
+                    await db.collection('products').doc(editingProductId).update(productData);
+                    showToast("¡Cambios guardados! Ya se actualizaron en el catálogo.", "success");
+                } else {
+                    productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection('products').add(productData);
+                    showToast("¡Producto agregado! Ya es visible para todas las personas que visiten tu catálogo.", "success");
+                }
 
-                // Reset form y previews (la lista se actualiza sola vía Firestore)
-                e.target.reset();
-                [1, 2, 3, 4].forEach(i => clearNewImage(i));
-
-                showToast("¡Producto agregado! Ya es visible para todas las personas que visiten tu catálogo.", "success");
+                cancelEditProduct(); // limpia el formulario y vuelve a modo "agregar"
             } catch (err) {
                 console.error(err);
                 showToast("Ocurrió un error guardando el producto. Intenta de nuevo.", "error");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnHtml;
+                syncProductFormUI();
             }
         }
 
@@ -535,9 +619,14 @@
                                 <p class="text-[11px] text-gray-400">${p.category} · <span class="text-pink-500 font-semibold">${formattedPrice}</span></p>
                             </div>
                         </div>
-                        <button onclick="deleteProduct('${p.id}')" class="w-9 h-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 flex items-center justify-center transition flex-shrink-0 text-xs" title="Eliminar producto">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <button onclick="openEditProduct('${p.id}')" class="w-9 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-pastelBlueDark flex items-center justify-center transition text-xs" title="Editar producto">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="deleteProduct('${p.id}')" class="w-9 h-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 flex items-center justify-center transition text-xs" title="Eliminar producto">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             });

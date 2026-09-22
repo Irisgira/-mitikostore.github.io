@@ -151,12 +151,17 @@
 
             <!-- Dashboard Content Tabs / Forms -->
             <div class="p-6 sm:p-8 space-y-8 flex-grow">
-                <!-- Add Product Form -->
+                <!-- Add / Edit Product Form -->
                 <div class="bg-gradient-to-br from-pink-50/50 via-yellow-50/30 to-blue-50/50 p-6 rounded-2xl border border-pink-100">
-                    <h4 class="text-md font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-plus-circle text-pink-400"></i> Agregar Nuevo Producto al Catálogo
-                    </h4>
-                    <form onsubmit="handleAddNewProduct(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 id="product-form-title" class="text-md font-bold text-gray-800 flex items-center gap-2">
+                            <i id="product-form-title-icon" class="fa-solid fa-plus-circle text-pink-400"></i> <span id="product-form-title-text">Agregar Nuevo Producto al Catálogo</span>
+                        </h4>
+                        <button type="button" onclick="cancelEditProduct()" id="cancel-edit-btn" class="hidden text-[11px] text-gray-400 hover:text-rose-500 underline">
+                            Cancelar edición
+                        </button>
+                    </div>
+                    <form id="product-form" onsubmit="handleProductFormSubmit(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto *</label>
                             <input type="text" id="new-name" required placeholder="Ej: Llavero Kawaii Osito" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-pastelPink focus:outline-none">
@@ -232,8 +237,8 @@
                             <p class="text-[11px] text-gray-400">Sube las fotos directamente desde tu computador o celular (PNG o JPG). Se guardan de verdad dentro del catálogo y se comprimen automáticamente para no ocupar demasiado espacio.</p>
                         </div>
                         <div class="sm:col-span-2 pt-2">
-                            <button type="submit" class="w-full py-3 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-bold rounded-xl shadow-md transition duration-300 text-sm flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Producto en el Catálogo
+                            <button type="submit" id="product-form-submit-btn" class="w-full py-3 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-bold rounded-xl shadow-md transition duration-300 text-sm flex items-center justify-center gap-2">
+                                <i id="product-form-submit-icon" class="fa-solid fa-cloud-arrow-up"></i> <span id="product-form-submit-text">Guardar Producto en el Catálogo</span>
                             </button>
                         </div>
                     </form>
@@ -257,10 +262,10 @@
         </div>
     </div>
 
-    <footer class="bg-sky-100 border-t border-pastelPink/30 py-8 mt-12 text-center text-xs text-gray-400">
+    <footer class="bg-white border-t border-pastelPink/30 py-8 mt-12 text-center text-xs text-gray-400">
         <div class="max-w-7xl mx-auto px-4 space-y-2">
             <p>© 2026 Catálogo Exclusivo Emprendimiento. Diseñado con amor 💖</p>
-            <p>whatsapp 3008472025</p>
+            <p>Aloha estático en GitHub Pages · Sin pasarelas de pago · Solo catálogo visual</p>
         </div>
     </footer>
 
