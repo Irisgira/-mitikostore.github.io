@@ -1,0 +1,19 @@
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fff5f7 0%, #f0f7f9 50% , #fffef0 100%);
+            min-height: 100vh;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fff5f7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f8b1c1;
+            border-radius: 4px;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(255, 209, 220, 0.4), 0 8px 10px -6px rgba(174, 198, 207, 0.2);
+        }
