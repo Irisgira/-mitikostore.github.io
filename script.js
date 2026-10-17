@@ -81,25 +81,158 @@ let searchQuery = '';
 let editingProductId = null; // null = modo "agregar"; con id = modo "editar"
 let existingImages = [null, null, null, null]; // fotos ya guardadas del producto que se está editando
 
-// Initialize Application: escucha el catálogo en Firestore EN VIVO.
-// Cualquier producto que agregues o borres desde el panel se refleja
-// al instante para todas las personas que tengan la página abierta.
+// Paginación: los productos se piden a Firestore de 20 en 20
+const PAGE_SIZE = 20;
+let lastVisibleDoc = null;    // último documento cargado (punto de partida de la siguiente página)
+let hasMoreProducts = false;  // true si probablemente quedan más productos por cargar
+let isLoadingProducts = false;
+let latestLoadId = 0;         // identifica la carga más reciente (descarta respuestas viejas)
+let categoryQueryUnordered = false; // true si falta el índice de Firestore y se consulta sin orden por fecha
+
+// Documento especial (dentro de 'products') que guarda la lista completa de categorías.
+// No tiene 'createdAt' ni 'category', así que nunca aparece como un producto.
+const CATEGORIES_DOC_ID = '_categorias';
+
+// Todas las categorías conocidas (se acumulan, para que los botones no desaparezcan al filtrar)
+const knownCategories = new Set();
+
+// Initialize Application: carga la primera página del catálogo
 function initApp() {
-    db.collection('products').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-        products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderCategories();
-        renderProducts();
-        renderAdminProductsList();
-    }, (err) => {
+    if (typeof db === 'undefined') {
+        console.error('Firebase no está configurado: revisa que firebase-config.js esté en la misma carpeta que index.html.');
+        showToast("No se encontró la configuración de Firebase (firebase-config.js).", "error");
+        return;
+    }
+    loadCategoriesFromMeta();
+    loadProducts(true);
+}
+
+// Arma la consulta a Firestore según la categoría activa y la página que toca
+function buildProductsQuery() {
+    let query = db.collection('products');
+    const byCategory = currentCategory !== 'todos';
+
+    if (byCategory) query = query.where('category', '==', currentCategory);
+    if (!(byCategory && categoryQueryUnordered)) query = query.orderBy('createdAt', 'desc');
+    if (lastVisibleDoc) query = query.startAfter(lastVisibleDoc);
+
+    return query.limit(PAGE_SIZE);
+}
+
+// Carga una página de productos. reset = true empieza desde cero (primera página)
+async function loadProducts(reset = false) {
+    if (isLoadingProducts && !reset) return;
+    const requestId = ++latestLoadId;
+    isLoadingProducts = true;
+
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    if (reset) {
+        products = [];
+        lastVisibleDoc = null;
+        hasMoreProducts = false;
+        document.getElementById('empty-state').classList.add('is-hidden');
+        document.getElementById('products-grid').innerHTML =
+            '<p class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Cargando productos...</p>';
+        document.getElementById('load-more-wrap').classList.add('is-hidden');
+    } else {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cargando...';
+    }
+
+    try {
+        let snapshot;
+        try {
+            snapshot = await buildProductsQuery().get();
+        } catch (err) {
+            // Falta el índice compuesto (categoría + fecha): se reintenta sin ordenar por fecha
+            if (err.code === 'failed-precondition' && currentCategory !== 'todos' && !categoryQueryUnordered) {
+                console.warn('Falta un índice en Firestore. Puedes crearlo con el enlace de este mensaje:', err.message);
+                categoryQueryUnordered = true;
+                snapshot = await buildProductsQuery().get();
+            } else {
+                throw err;
+            }
+        }
+
+        if (requestId !== latestLoadId) return; // llegó una respuesta vieja: se descarta
+
+        const newProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        products = products.concat(newProducts);
+        if (snapshot.docs.length > 0) {
+            lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+        }
+        hasMoreProducts = snapshot.docs.length === PAGE_SIZE;
+    } catch (err) {
+        if (requestId !== latestLoadId) return;
         console.error(err);
         showToast("No se pudo conectar con la base de datos del catálogo.", "error");
-    });
+    } finally {
+        if (requestId === latestLoadId) isLoadingProducts = false;
+    }
+
+    renderCategories();
+    renderProducts();
+    renderAdminProductsList();
+    updateLoadMoreButton();
+}
+
+// Botón "Ver más productos"
+function loadMoreProducts() {
+    loadProducts(false);
+}
+
+// Muestra u oculta el botón según queden o no productos por cargar
+function updateLoadMoreButton() {
+    const wrap = document.getElementById('load-more-wrap');
+    const btn = document.getElementById('load-more-btn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-chevron-down"></i> Ver más productos';
+    wrap.classList.toggle('is-hidden', !hasMoreProducts);
+}
+
+// --- Lista de categorías (guardada en el documento products/_categorias) ---
+
+// Lee la lista completa de categorías sin tener que descargar todos los productos
+async function loadCategoriesFromMeta() {
+    try {
+        const doc = await db.collection('products').doc(CATEGORIES_DOC_ID).get();
+        if (doc.exists && Array.isArray(doc.data().list)) {
+            doc.data().list.forEach(c => knownCategories.add(c));
+            renderCategories();
+        }
+    } catch (err) {
+        console.warn('No se pudo leer la lista de categorías:', err.message);
+    }
+}
+
+// Guarda una categoría en la lista (se usa al agregar o editar un producto)
+function saveCategoryToMeta(category) {
+    knownCategories.add(category);
+    db.collection('products').doc(CATEGORIES_DOC_ID)
+        .set({ list: firebase.firestore.FieldValue.arrayUnion(category) }, { merge: true })
+        .catch(err => console.warn('No se pudo guardar la categoría en la lista:', err.message));
+}
+
+// Reconstruye la lista leyendo TODOS los productos (úsalo pocas veces: descarga todo el catálogo)
+async function syncCategoriesFromAllProducts() {
+    try {
+        const snapshot = await db.collection('products').get();
+        const list = Array.from(new Set(snapshot.docs.filter(d => d.id !== CATEGORIES_DOC_ID).map(d => d.data().category).filter(Boolean)));
+        await db.collection('products').doc(CATEGORIES_DOC_ID).set({ list });
+        knownCategories.clear();
+        list.forEach(c => knownCategories.add(c));
+        renderCategories();
+        showToast(`Lista de categorías actualizada (${list.length}).`, "success");
+    } catch (err) {
+        console.error(err);
+        showToast("No se pudo actualizar la lista de categorías. Intenta de nuevo.", "error");
+    }
 }
 
 // Carga los 6 productos de ejemplo en Firestore, solo si la base de datos
 // está vacía (útil la primera vez que conectas la base de datos).
 async function seedDefaultProductsIfEmpty() {
-    const snapshot = await db.collection('products').limit(1).get();
+    const snapshot = await db.collection('products').orderBy('createdAt', 'desc').limit(1).get();
     if (!snapshot.empty) {
         showToast("Ya hay productos en la base de datos, no se cargaron los de ejemplo.", "error");
         return;
@@ -111,6 +244,7 @@ async function seedDefaultProductsIfEmpty() {
         batch.set(ref, { ...rest, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     });
     await batch.commit();
+    loadProducts(true);
     showToast("Productos de ejemplo cargados en la base de datos.", "success");
 }
 
@@ -118,8 +252,8 @@ async function seedDefaultProductsIfEmpty() {
 function renderCategories() {
     const container = document.getElementById('category-filters');
     // Extract unique categories
-    const categoriesSet = new Set(products.map(p => p.category));
-    const categories = ['todos', ...Array.from(categoriesSet)];
+    products.forEach(p => { if (p.category) knownCategories.add(p.category); });
+    const categories = ['todos', ...Array.from(knownCategories).sort((a, b) => a.localeCompare(b, 'es'))];
 
     let html = '';
     categories.forEach(cat => {
@@ -138,9 +272,10 @@ function renderCategories() {
 
 // Filter by category
 function filterCategory(cat) {
+    if (cat === currentCategory) return;
     currentCategory = cat;
-    renderCategories();
-    renderProducts();
+    renderCategories();   // marca el botón activo al instante
+    loadProducts(true);   // trae de la base de datos solo los productos de esa categoría
 }
 
 // Handle Search input
@@ -163,7 +298,7 @@ function renderProducts() {
         return matchesCategory && matchesSearch;
     });
 
-    counterEl.innerText = `${filtered.length} referencias`;
+    counterEl.innerText = `${filtered.length}${hasMoreProducts ? '+' : ''} referencias`;
     titleEl.innerText = currentCategory === 'todos' ? 'Catálogo General' : `Categoría: ${currentCategory}`;
 
     if (filtered.length === 0) {
@@ -541,7 +676,9 @@ async function handleProductFormSubmit(e) {
             showToast("¡Producto agregado! Ya es visible para todas las personas que visiten tu catálogo.", "success");
         }
 
-        cancelEditProduct(); // limpia el formulario y vuelve a modo "agregar"
+        saveCategoryToMeta(category);
+            cancelEditProduct(); // limpia el formulario y vuelve a modo "agregar"
+            loadProducts(true);  // recarga el catálogo con los cambios
     } catch (err) {
         console.error(err);
         showToast("Ocurrió un error guardando el producto. Intenta de nuevo.", "error");
@@ -554,7 +691,7 @@ async function handleProductFormSubmit(e) {
 // Render Admin Products List for management/deletion
 function renderAdminProductsList() {
     const container = document.getElementById('admin-products-list');
-    document.getElementById('admin-prod-count').innerText = products.length;
+    document.getElementById('admin-prod-count').innerText = products.length + (hasMoreProducts ? '+' : '');
 
     if (products.length === 0) {
         container.innerHTML = `<p class="admin-empty">No hay productos registrados.</p>`;
@@ -593,7 +730,10 @@ function renderAdminProductsList() {
 function deleteProduct(id) {
     if (confirm("¿Estás segura de eliminar este producto del catálogo? Sus fotos también se borrarán.")) {
         db.collection('products').doc(id).delete()
-            .then(() => showToast("Producto y fotos eliminados definitivamente.", "success"))
+            .then(() => {
+                showToast("Producto y fotos eliminados definitivamente.", "success");
+                loadProducts(true);
+            })
             .catch((err) => {
                 console.error(err);
                 showToast("No se pudo eliminar el producto. Intenta de nuevo.", "error");

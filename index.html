@@ -9,7 +9,7 @@
     <!-- Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Estilos propios (CSS puro) -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -85,6 +85,13 @@
                 </div>
                 <h4 class="empty-state__title">No se encontraron productos</h4>
                 <p class="empty-state__text">Intenta buscar con otro término o selecciona otra categoría.</p>
+            </div>
+
+            <!-- Botón para cargar más productos (de 20 en 20) -->
+            <div id="load-more-wrap" class="load-more is-hidden">
+                <button id="load-more-btn" class="btn-load-more" onclick="loadMoreProducts()">
+                    <i class="fa-solid fa-chevron-down"></i> Ver más productos
+                </button>
             </div>
         </section>
     </main>
@@ -259,9 +266,14 @@
                         <h4 class="section-head__title">
                             <i class="fa-solid fa-list-check icon-blue"></i> Productos Existentes (<span id="admin-prod-count">0</span>)
                         </h4>
-                        <button class="link-small link-small--pink" onclick="seedDefaultProductsIfEmpty()" title="Solo funciona si la base de datos está vacía">
-                            Cargar productos de ejemplo
-                        </button>
+                        <div class="section-head__links">
+                            <button class="link-small link-small--pink" onclick="syncCategoriesFromAllProducts()" title="Lee todos los productos y reconstruye la lista de categorías">
+                                Actualizar categorías
+                            </button>
+                            <button class="link-small link-small--pink" onclick="seedDefaultProductsIfEmpty()" title="Solo funciona si la base de datos está vacía">
+                                Cargar productos de ejemplo
+                            </button>
+                        </div>
                     </div>
                     <div id="admin-products-list" class="admin-list">
                         <!-- Generado con JS -->
@@ -285,6 +297,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>
