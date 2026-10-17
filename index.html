@@ -4,266 +4,276 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo | Mitiko Store</title>
-    <!-- Tailwind CSS for modern responsive utility styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for icons -->
+    <!-- FontAwesome para los iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Poppins for a playful, youthful look -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Estilos propios (CSS puro) -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="text-softDark antialiased flex flex-col min-h-screen justify-between">
+<body>
 
-    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-pastelPink/50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <!-- Brand Logo / Title -->
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="filterCategory('todos')">
-                <div class="w-12 h-12 rounded-full bg-white shadow-md overflow-hidden flex items-center justify-center transform hover:rotate-12 transition duration-300">
-                    <img src="assets/logo.png" alt="Logo Mitiko Store" class="w-full h-full object-cover">
+    <!-- ============ HEADER ============ -->
+    <header class="site-header">
+        <div class="container site-header__inner">
+            <!-- Logo / título -->
+            <div class="brand" onclick="filterCategory('todos')">
+                <div class="brand__logo">
+                    <img src="assets/logo.png" alt="Logo Mitiko Store">
                 </div>
                 <div>
-                    <h1 id="brand-title" class="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-pink-400 via-yellow-500 to-blue-400 bg-clip-text text-transparent">Mitiko PinkStore</h1>
-                    <p class="text-xs text-gray-400 font-medium tracking-wide">By: Eden_ggi✨ </p>
+                    <h1 id="brand-title" class="brand__title">Mitiko PinkStore</h1>
+                    <p class="brand__by">By: Eden_ggi✨ </p>
                 </div>
             </div>
 
-            <!-- Hidden Admin trigger (Disguised as a cute decorative star or heart) -->
-            <div class="flex items-center space-x-4">
-                <button id="secret-admin-btn" onclick="openAdminLoginModal()" title="Área secreta" class="w-8 h-8 rounded-full bg-pastelYellow/50 hover:bg-pastelYellow flex items-center justify-center text-yellow-600 transition duration-300 transform hover:scale-110 focus:outline-none">
-                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+            <!-- Acceso secreto del administrador (disfrazado de varita mágica) -->
+            <div class="header-actions">
+                <button id="secret-admin-btn" class="secret-btn" onclick="openAdminLoginModal()" title="Área secreta">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Hero Banner -->
-        <section class="relative rounded-3xl bg-gradient-to-r from-pastelPink/60 via-pastelYellow/60 to-pastelBlue/60 p-8 sm:p-12 mb-10 overflow-hidden card-shadow border border-white/60">
-            <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/30 blur-2xl pointer-events-none"></div>
-            <div class="relative z-10 max-w-2xl">
-                <span class="inline-block bg-white/80 text-pink-500 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 shadow-sm">✨ Nuevos productos</span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-3">¡Domicilios gratis en la Cuc y Uni simon bolivar!</h2>
-                <p class="text-gray-600 text-sm sm:text-base mb-6"> Precios super accesibles para todos ✨ </p>
-                
-                <!-- Search bar -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+    <!-- ============ CONTENIDO PRINCIPAL ============ -->
+    <main class="container main">
+
+        <!-- Banner principal -->
+        <section class="hero card-shadow">
+            <div class="hero__glow"></div>
+            <div class="hero__content">
+                <span class="hero__badge">✨ Nuevos productos</span>
+                <h2 class="hero__title">¡Domicilios gratis en la Cuc y Uni simon bolivar!</h2>
+                <p class="hero__text"> Precios super accesibles para todos ✨ </p>
+
+                <!-- Buscador -->
+                <div class="search">
+                    <span class="search__icon">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    <input type="text" id="search-input" oninput="handleSearch()" placeholder="Buscar producto por nombre o descripción..." class="w-full pl-11 pr-4 py-3 bg-white/90 backdrop-blur-sm rounded-2xl border border-white focus:outline-none focus:ring-2 focus:ring-pastelBlue shadow-sm text-sm transition">
+                    <input type="text" id="search-input" class="search__input" oninput="handleSearch()" placeholder="Buscar producto por nombre o descripción...">
                 </div>
             </div>
         </section>
 
-        <!-- Category Filters -->
-        <section class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-700 flex items-center gap-2">
-                    <i class="fa-solid fa-shapes text-pastelBlueDark"></i> Categorías
+        <!-- Filtros por categoría -->
+        <section class="categories">
+            <div class="categories__head">
+                <h3 class="categories__title">
+                    <i class="fa-solid fa-shapes icon-blue"></i> Categorías
                 </h3>
             </div>
-            <div id="category-filters" class="flex flex-wrap gap-2 sm:gap-3">
-                <!-- Dynamically populated category buttons -->
+            <div id="category-filters" class="categories__list">
+                <!-- Botones de categoría generados dinámicamente -->
             </div>
         </section>
 
-        <!-- Products Grid Container -->
-        <section>
-            <div class="flex items-center justify-between mb-6">
-                <h3 id="product-count-title" class="text-xl font-bold text-gray-800">Catálogo General</h3>
-                <span id="product-counter" class="text-xs font-semibold px-3 py-1 bg-white rounded-full text-gray-500 shadow-sm border border-gray-100">0 referencias</span>
+        <!-- Cuadrícula de productos -->
+        <section class="catalog">
+            <div class="catalog__head">
+                <h3 id="product-count-title" class="catalog__title">Catálogo General</h3>
+                <span id="product-counter" class="counter">0 referencias</span>
             </div>
-            <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Product cards will be rendered here dynamically -->
+            <div id="products-grid" class="products-grid">
+                <!-- Tarjetas de producto generadas dinámicamente -->
             </div>
-            <!-- Empty state -->
-            <div id="empty-state" class="hidden text-center py-16 bg-white/50 rounded-3xl border border-dashed border-gray-300 mt-4">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-pastelPink/30 flex items-center justify-center text-pink-400 text-2xl">
+            <!-- Estado vacío -->
+            <div id="empty-state" class="empty-state is-hidden">
+                <div class="empty-state__icon">
                     <i class="fa-solid fa-box-open"></i>
                 </div>
-                <h4 class="text-lg font-bold text-gray-700 mb-1">No se encontraron productos</h4>
-                <p class="text-sm text-gray-500">Intenta buscar con otro término o selecciona otra categoría.</p>
+                <h4 class="empty-state__title">No se encontraron productos</h4>
+                <p class="empty-state__text">Intenta buscar con otro término o selecciona otra categoría.</p>
             </div>
         </section>
     </main>
 
-    <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto card-shadow transform scale-95 transition-transform duration-300 relative">
-            <button onclick="closeProductModal()" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition focus:outline-none">
-                <i class="fa-solid fa-xmark text-lg"></i>
+    <!-- ============ MODAL: DETALLE DE PRODUCTO ============ -->
+    <div id="product-modal" class="modal">
+        <div class="modal__dialog modal__dialog--product">
+            <button class="icon-btn icon-btn--md modal__close" onclick="closeProductModal()">
+                <i class="fa-solid fa-xmark"></i>
             </button>
-            <div id="modal-content" class="p-6 sm:p-8">
-                <!-- Modal details injected dynamically -->
+            <div id="modal-content" class="modal__body">
+                <!-- Detalles inyectados dinámicamente -->
             </div>
         </div>
     </div>
 
-    <div id="admin-login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 card-shadow transform scale-95 transition-transform duration-300 relative">
-            <button onclick="closeAdminLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-xmark text-lg"></i>
+    <!-- ============ MODAL: LOGIN ADMINISTRADOR ============ -->
+    <div id="admin-login-modal" class="modal">
+        <div class="modal__dialog modal__dialog--login">
+            <button class="modal__close modal__close--plain" onclick="closeAdminLoginModal()">
+                <i class="fa-solid fa-xmark"></i>
             </button>
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-pastelYellow flex items-center justify-center text-yellow-600 text-2xl shadow-sm">
+            <div class="login__header">
+                <div class="login__icon">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800">Acceso Administrador</h3>
-                <p class="text-xs text-gray-400 mt-1">Ingresa tus credenciales para gestionar productos</p>
+                <h3 class="login__title">Acceso Administrador</h3>
+                <p class="login__subtitle">Ingresa tus credenciales para gestionar productos</p>
             </div>
-            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+            <form class="login__form" onsubmit="handleAdminLogin(event)">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Correo Electrónico</label>
-                    <input type="email" id="admin-email" required placeholder="tu@correo.com" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pastelYellow text-sm">
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" id="admin-email" class="form-input form-input--lg form-input--yellow" required placeholder="tu@correo.com">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Contraseña</label>
-                    <input type="password" id="admin-password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pastelYellow text-sm">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" id="admin-password" class="form-input form-input--lg form-input--yellow" required placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-500 hover:to-amber-500 text-white font-bold rounded-xl shadow-md transition duration-300 text-sm">
+                <button type="submit" class="btn btn--yellow">
                     Ingresar al Panel
                 </button>
             </form>
         </div>
     </div>
 
-    <div id="admin-dashboard-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto card-shadow transform scale-95 transition-transform duration-300 relative flex flex-col">
-            <!-- Header -->
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-pastelPink flex items-center justify-center text-pink-600 font-bold">
+    <!-- ============ MODAL: PANEL DE ADMINISTRACIÓN ============ -->
+    <div id="admin-dashboard-modal" class="modal modal--dark">
+        <div class="modal__dialog modal__dialog--admin">
+
+            <!-- Cabecera -->
+            <div class="admin__header">
+                <div class="admin__brand">
+                    <div class="admin__brand-icon">
                         <i class="fa-solid fa-gauge-high"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800">Panel de Administración</h3>
-                        <p class="text-xs text-gray-400">Agrega, edita o elimina referencias de tu catálogo</p>
+                        <h3 class="admin__title">Panel de Administración</h3>
+                        <p class="admin__subtitle">Agrega, edita o elimina referencias de tu catálogo</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="logoutAdmin()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-xl transition">
+                <div class="admin__actions">
+                    <button class="btn-logout" onclick="logoutAdmin()">
                         Cerrar Sesión
                     </button>
-                    <button onclick="closeAdminDashboard()" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition">
+                    <button class="icon-btn icon-btn--sm" onclick="closeAdminDashboard()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Dashboard Content Tabs / Forms -->
-            <div class="p-6 sm:p-8 space-y-8 flex-grow">
-                <!-- Add / Edit Product Form -->
-                <div class="bg-gradient-to-br from-pink-50/50 via-yellow-50/30 to-blue-50/50 p-6 rounded-2xl border border-pink-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 id="product-form-title" class="text-md font-bold text-gray-800 flex items-center gap-2">
-                            <i id="product-form-title-icon" class="fa-solid fa-plus-circle text-pink-400"></i> <span id="product-form-title-text">Agregar Nuevo Producto al Catálogo</span>
+            <!-- Contenido -->
+            <div class="admin__content">
+
+                <!-- Formulario: agregar / editar producto -->
+                <div class="product-form-card">
+                    <div class="section-head">
+                        <h4 id="product-form-title" class="section-head__title">
+                            <i id="product-form-title-icon" class="fa-solid fa-plus-circle icon-pink"></i> <span id="product-form-title-text">Agregar Nuevo Producto al Catálogo</span>
                         </h4>
-                        <button type="button" onclick="cancelEditProduct()" id="cancel-edit-btn" class="hidden text-[11px] text-gray-400 hover:text-rose-500 underline">
+                        <button type="button" id="cancel-edit-btn" class="link-small link-small--rose is-hidden" onclick="cancelEditProduct()">
                             Cancelar edición
                         </button>
                     </div>
-                    <form id="product-form" onsubmit="handleProductFormSubmit(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <form id="product-form" class="product-form" onsubmit="handleProductFormSubmit(event)">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto *</label>
-                            <input type="text" id="new-name" required placeholder="Ej: Llavero Kawaii Osito" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-pastelPink focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Categoría *</label>
-                            <input type="text" id="new-category" required placeholder="Ej: Accesorios, Papelería..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-pastelPink focus:outline-none">
+                            <label class="form-label">Nombre del Producto *</label>
+                            <input type="text" id="new-name" class="form-input" required placeholder="Ej: Llavero Kawaii Osito">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Precio ($ COP o USD) *</label>
-                            <input type="number" step="0.01" id="new-price" required placeholder="Ej: 25000" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-pastelPink focus:outline-none">
+                            <label class="form-label">Categoría *</label>
+                            <input type="text" id="new-category" class="form-input" required placeholder="Ej: Accesorios, Papelería...">
                         </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Descripción Completa *</label>
-                            <textarea id="new-description" rows="3" required placeholder="Detalles, materiales, tamaños..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-pastelPink focus:outline-none"></textarea>
+                        <div>
+                            <label class="form-label">Precio ($ COP o USD) *</label>
+                            <input type="number" step="0.01" id="new-price" class="form-input" required placeholder="Ej: 25000">
                         </div>
-                        <div class="sm:col-span-2 space-y-2">
-                            <label class="block text-xs font-semibold text-gray-600">Fotos del Producto (Hasta 4, formato PNG o JPG)</label>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                <div class="relative">
-                                    <input type="file" accept="image/png, image/jpeg" id="new-img-1" onchange="previewNewImage(1, this)" required class="hidden">
-                                    <label for="new-img-1" class="flex flex-col items-center justify-center w-full h-24 bg-white rounded-xl border-2 border-dashed border-gray-200 cursor-pointer hover:border-pink-300 transition overflow-hidden">
-                                        <div id="new-img-1-placeholder" class="flex flex-col items-center text-gray-400 text-[11px] gap-1 px-1 text-center">
-                                            <i class="fa-solid fa-camera text-base"></i>
+                        <div class="form-field--full">
+                            <label class="form-label">Descripción Completa *</label>
+                            <textarea id="new-description" class="form-input" rows="3" required placeholder="Detalles, materiales, tamaños..."></textarea>
+                        </div>
+
+                        <div class="form-field--full form-field--stack">
+                            <label class="form-label">Fotos del Producto (Hasta 4, formato PNG o JPG)</label>
+                            <div class="upload-grid">
+                                <div class="upload-slot-wrap">
+                                    <input type="file" accept="image/png, image/jpeg" id="new-img-1" class="is-hidden" onchange="previewNewImage(1, this)" required>
+                                    <label for="new-img-1" class="upload-slot">
+                                        <div id="new-img-1-placeholder" class="upload-slot__placeholder">
+                                            <i class="fa-solid fa-camera"></i>
                                             <span>Foto 1 (Principal)</span>
                                         </div>
-                                        <img id="new-img-1-preview" class="hidden w-full h-full object-cover" alt="Vista previa foto 1">
+                                        <img id="new-img-1-preview" class="upload-slot__preview is-hidden" alt="Vista previa foto 1">
                                     </label>
-                                    <button type="button" onclick="clearNewImage(1)" id="new-img-1-clear" class="hidden absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center shadow">
+                                    <button type="button" id="new-img-1-clear" class="upload-slot__clear is-hidden" onclick="clearNewImage(1)">
                                         <i class="fa-solid fa-xmark"></i>
                                     </button>
                                 </div>
-                                <div class="relative">
-                                    <input type="file" accept="image/png, image/jpeg" id="new-img-2" onchange="previewNewImage(2, this)" class="hidden">
-                                    <label for="new-img-2" class="flex flex-col items-center justify-center w-full h-24 bg-white rounded-xl border-2 border-dashed border-gray-200 cursor-pointer hover:border-pink-300 transition overflow-hidden">
-                                        <div id="new-img-2-placeholder" class="flex flex-col items-center text-gray-400 text-[11px] gap-1 px-1 text-center">
-                                            <i class="fa-solid fa-camera text-base"></i>
+                                <div class="upload-slot-wrap">
+                                    <input type="file" accept="image/png, image/jpeg" id="new-img-2" class="is-hidden" onchange="previewNewImage(2, this)">
+                                    <label for="new-img-2" class="upload-slot">
+                                        <div id="new-img-2-placeholder" class="upload-slot__placeholder">
+                                            <i class="fa-solid fa-camera"></i>
                                             <span>Foto 2 (Opcional)</span>
                                         </div>
-                                        <img id="new-img-2-preview" class="hidden w-full h-full object-cover" alt="Vista previa foto 2">
+                                        <img id="new-img-2-preview" class="upload-slot__preview is-hidden" alt="Vista previa foto 2">
                                     </label>
-                                    <button type="button" onclick="clearNewImage(2)" id="new-img-2-clear" class="hidden absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center shadow">
+                                    <button type="button" id="new-img-2-clear" class="upload-slot__clear is-hidden" onclick="clearNewImage(2)">
                                         <i class="fa-solid fa-xmark"></i>
                                     </button>
                                 </div>
-                                <div class="relative">
-                                    <input type="file" accept="image/png, image/jpeg" id="new-img-3" onchange="previewNewImage(3, this)" class="hidden">
-                                    <label for="new-img-3" class="flex flex-col items-center justify-center w-full h-24 bg-white rounded-xl border-2 border-dashed border-gray-200 cursor-pointer hover:border-pink-300 transition overflow-hidden">
-                                        <div id="new-img-3-placeholder" class="flex flex-col items-center text-gray-400 text-[11px] gap-1 px-1 text-center">
-                                            <i class="fa-solid fa-camera text-base"></i>
+                                <div class="upload-slot-wrap">
+                                    <input type="file" accept="image/png, image/jpeg" id="new-img-3" class="is-hidden" onchange="previewNewImage(3, this)">
+                                    <label for="new-img-3" class="upload-slot">
+                                        <div id="new-img-3-placeholder" class="upload-slot__placeholder">
+                                            <i class="fa-solid fa-camera"></i>
                                             <span>Foto 3 (Opcional)</span>
                                         </div>
-                                        <img id="new-img-3-preview" class="hidden w-full h-full object-cover" alt="Vista previa foto 3">
+                                        <img id="new-img-3-preview" class="upload-slot__preview is-hidden" alt="Vista previa foto 3">
                                     </label>
-                                    <button type="button" onclick="clearNewImage(3)" id="new-img-3-clear" class="hidden absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center shadow">
+                                    <button type="button" id="new-img-3-clear" class="upload-slot__clear is-hidden" onclick="clearNewImage(3)">
                                         <i class="fa-solid fa-xmark"></i>
                                     </button>
                                 </div>
-                                <div class="relative">
-                                    <input type="file" accept="image/png, image/jpeg" id="new-img-4" onchange="previewNewImage(4, this)" class="hidden">
-                                    <label for="new-img-4" class="flex flex-col items-center justify-center w-full h-24 bg-white rounded-xl border-2 border-dashed border-gray-200 cursor-pointer hover:border-pink-300 transition overflow-hidden">
-                                        <div id="new-img-4-placeholder" class="flex flex-col items-center text-gray-400 text-[11px] gap-1 px-1 text-center">
-                                            <i class="fa-solid fa-camera text-base"></i>
+                                <div class="upload-slot-wrap">
+                                    <input type="file" accept="image/png, image/jpeg" id="new-img-4" class="is-hidden" onchange="previewNewImage(4, this)">
+                                    <label for="new-img-4" class="upload-slot">
+                                        <div id="new-img-4-placeholder" class="upload-slot__placeholder">
+                                            <i class="fa-solid fa-camera"></i>
                                             <span>Foto 4 (Opcional)</span>
                                         </div>
-                                        <img id="new-img-4-preview" class="hidden w-full h-full object-cover" alt="Vista previa foto 4">
+                                        <img id="new-img-4-preview" class="upload-slot__preview is-hidden" alt="Vista previa foto 4">
                                     </label>
-                                    <button type="button" onclick="clearNewImage(4)" id="new-img-4-clear" class="hidden absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center shadow">
+                                    <button type="button" id="new-img-4-clear" class="upload-slot__clear is-hidden" onclick="clearNewImage(4)">
                                         <i class="fa-solid fa-xmark"></i>
                                     </button>
                                 </div>
                             </div>
-                            <p class="text-[11px] text-gray-400">Sube las fotos directamente desde tu computador o celular (PNG o JPG). Se guardan de verdad dentro del catálogo y se comprimen automáticamente para no ocupar demasiado espacio.</p>
+                            <p class="help-text">Sube las fotos directamente desde tu computador o celular (PNG o JPG). Se guardan de verdad dentro del catálogo y se comprimen automáticamente para no ocupar demasiado espacio.</p>
                         </div>
-                        <div class="sm:col-span-2 pt-2">
-                            <button type="submit" id="product-form-submit-btn" class="w-full py-3 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-bold rounded-xl shadow-md transition duration-300 text-sm flex items-center justify-center gap-2">
+
+                        <div class="form-field--full form-submit-wrap">
+                            <button type="submit" id="product-form-submit-btn" class="btn btn--pink">
                                 <i id="product-form-submit-icon" class="fa-solid fa-cloud-arrow-up"></i> <span id="product-form-submit-text">Guardar Producto en el Catálogo</span>
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Manage / Delete Existing Products -->
+                <!-- Gestionar / eliminar productos existentes -->
                 <div>
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-md font-bold text-gray-800 flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-pastelBlueDark"></i> Productos Existentes (<span id="admin-prod-count">0</span>)
+                    <div class="section-head">
+                        <h4 class="section-head__title">
+                            <i class="fa-solid fa-list-check icon-blue"></i> Productos Existentes (<span id="admin-prod-count">0</span>)
                         </h4>
-                        <button onclick="seedDefaultProductsIfEmpty()" class="text-[11px] text-gray-400 hover:text-pink-500 underline" title="Solo funciona si la base de datos está vacía">
+                        <button class="link-small link-small--pink" onclick="seedDefaultProductsIfEmpty()" title="Solo funciona si la base de datos está vacía">
                             Cargar productos de ejemplo
                         </button>
                     </div>
-                    <div id="admin-products-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
-                        <!-- Rendered via JS -->
+                    <div id="admin-products-list" class="admin-list">
+                        <!-- Generado con JS -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer class="bg-white border-t border-pastelPink/30 py-8 mt-12 text-center text-xs text-gray-400">
-        <div class="max-w-7xl mx-auto px-4 space-y-2">
+    <!-- ============ FOOTER ============ -->
+    <footer class="site-footer">
+        <div class="container site-footer__inner">
             <p>© 2026 Catálogo Exclusivo Emprendimiento. Diseñado con amor y algo de codigo 💖</p>
             <p> Whatsapp 3008472025</p>
             <p>INSTAGRAM: mitiko_pinkstore</p>
